@@ -85,7 +85,7 @@ class CategoryController extends GetxController {
       Navigator.pop(context);
       Get.snackbar("Added", "Added successful");
     } catch (e) {
-      Get.snackbar("خطأ", e.toString());
+      Get.snackbar("Error", e.toString());
     }
   }
 
