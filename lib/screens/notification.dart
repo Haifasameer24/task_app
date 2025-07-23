@@ -148,7 +148,7 @@ class NotificationPage extends StatelessWidget{
                             style: TextStyle(fontSize: 13, color: subtitleColor),
                           ),
                           TextSpan(
-                            text: ' (${task.cat}) ',
+                            text: ' ( ${task.cat}) ',
                             style: TextStyle(
                               fontSize: 13,
                               color: categoryController.getColorByCategoryName(task.cat) ?? Colors.grey, // لون مخصص للفئة
