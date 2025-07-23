@@ -27,10 +27,8 @@ class TaskController extends GetxController {
   RxString searchText = ''.obs;
 
   final RxBool isNotificationOn = true.obs;
-  final RxBool isLoading=true.obs;
+  final RxBool isLoading = true.obs;
   final RxBool haveNotify = true.obs;
-
-
 
   @override
   void onInit() {
@@ -39,12 +37,14 @@ class TaskController extends GetxController {
   }
 
   void streamTasks() {
+    print("📡 streamTasks() بدأ تنفيذها");
+
     final user = box.read("id");
     if (user == null) {
       Get.snackbar("Error", "User not logged in");
       return;
     }
-    isLoading.value=true;
+    isLoading.value = true;
 
     FirebaseFirestore.instance
         .collection("users")
@@ -52,11 +52,49 @@ class TaskController extends GetxController {
         .collection("tasks")
         .orderBy("createdAt", descending: true)
         .snapshots()
-        .listen((snapshot) {
-      tasks.value = snapshot.docs
+        .listen((snapshot) async {
+      final fetchedTasks = snapshot.docs
           .map((doc) => TaskModel.fromJson(doc.data()))
           .toList();
-      isLoading.value=false;
+
+      tasks.value = fetchedTasks;
+      isLoading.value = false;
+
+      for (final task in fetchedTasks) {
+        final scheduledKey = "notified_${task.id}";
+        final alreadyScheduled = box.read(scheduledKey) == true;
+
+        print("🧩 تحقق من المهمة: ${task.name}");
+        print("   🔸 haveNotify: ${task.haveNotify}");
+        print("   🔸 dueDate: ${task.dueDate} > الآن: ${DateTime.now()} → ${task.dueDate.isAfter(DateTime.now())}");
+        print("   🔸 alreadyScheduled: $alreadyScheduled");
+
+        if (task.haveNotify &&
+            task.dueDate.isAfter(DateTime.now()) &&
+            !alreadyScheduled) {
+          debugPrint("📲 جدولة إشعار:");
+          debugPrint("• ID: ${task.id}");
+          debugPrint("• Title: ${task.name}");
+          debugPrint("• Desc: ${task.description}");
+          debugPrint("• DateTime: ${task.dueDate}");
+
+          try {
+            await NotificationService.scheduleNotification(
+              id: task.id.hashCode,
+              title: task.name,
+              body: task.description,
+              year: task.dueDate.year,
+              month: task.dueDate.month,
+              day: task.dueDate.day,
+              hour: task.dueDate.hour,
+              minute: task.dueDate.minute,
+            );
+            box.write(scheduledKey, true);
+          } catch (e) {
+            print("❌ خطأ أثناء جدولة الإشعار: $e");
+          }
+        }
+      }
     });
   }
 
@@ -90,10 +128,13 @@ class TaskController extends GetxController {
       Get.snackbar("خطأ", "يجب اختيار وقت في المستقبل");
       return;
     }
-    await addTask(dueDate: taskDate!);
 
-    if(haveNotify.value == true) {
+    final newTaskId = await addTask(dueDate: taskDate!);
+    if (newTaskId == null) return;
+
+    if (haveNotify.value == true) {
       await NotificationService.scheduleNotification(
+        id: newTaskId.hashCode,
         title: "$taskTitle",
         body: "$taskDesc",
         year: year!,
@@ -102,14 +143,17 @@ class TaskController extends GetxController {
         hour: hour!,
         minute: minute!,
       );
+      box.write("notified_$newTaskId", true);
     }
   }
-  Future<void> addTask({required DateTime dueDate}) async {
+
+  Future<String?> addTask({required DateTime dueDate}) async {
     final user = box.read("id");
     if (user == null) {
       Get.snackbar("Error", "User not logged in");
-      return;
+      return null;
     }
+
     final taskId = FirebaseFirestore.instance.collection('tasks').doc().id;
     final task = TaskModel(
       id: taskId,
@@ -120,7 +164,7 @@ class TaskController extends GetxController {
       dueDate: dueDate,
       status: TaskStatus.upcoming,
       cat: taskCatController.text.trim(),
-      haveNotify: haveNotify.value
+      haveNotify: haveNotify.value,
     );
 
     try {
@@ -134,10 +178,11 @@ class TaskController extends GetxController {
       Get.snackbar("نجاح", "تم إضافة المهمة بنجاح ✅");
 
       clearFields();
+      return taskId;
     } catch (e) {
       Get.snackbar("فشل", e.toString());
+      return null;
     }
-    update();
   }
 
   void clearFields() {

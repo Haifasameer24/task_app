@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:getx_course/controller/task_controller.dart';
 import 'package:getx_course/screens/home_screen.dart';
 
 import '../app_routers.dart';
@@ -47,8 +48,7 @@ class SignUpController extends GetxController {
         await box.write("email", user.email.toString());
         await box.write("create_date", user.createdAt.toString());
         await box.write("is_logged_in", true);
-
-
+        Get.put(TaskController());
 
       Get.offAll(HomeScreen());
       }catch(e) {

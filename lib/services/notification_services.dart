@@ -51,7 +51,7 @@ class NotificationService {
 
   /// جدولة إشعار بتاريخ ووقت كامل
   static Future<void> scheduleNotification({
-    int id = 1,
+    required int id,
     required String title,
     required String body,
     required int year,

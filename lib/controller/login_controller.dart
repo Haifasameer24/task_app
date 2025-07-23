@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:getx_course/app_routers.dart';
+import 'package:getx_course/controller/task_controller.dart';
 import 'package:getx_course/screens/splash_screen.dart';
 
 import '../screens/home_screen.dart';
@@ -24,6 +25,7 @@ class LoginController extends GetxController {
           password: password
       );
       await _setUserLoggedIn();
+      Get.put(TaskController());
       Get.offAll(HomeScreen());
 
 

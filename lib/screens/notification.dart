@@ -162,11 +162,17 @@ class NotificationPage extends StatelessWidget{
                     ),
 
                     SizedBox(height: 2),
-                    Text(
-                      "${task.dueDate.day} ${_getMonthName(task.dueDate.month)} ${task.dueDate.year} "
-                          "${_formatHour(task.dueDate.hour)}:${task.dueDate.minute.toString().padLeft(2, '0')} ${_getAmPm(task.dueDate.hour)}",
-                      style: TextStyle(fontSize: 13, color: subtitleColor),
-                    ),
+                  Row(
+                    children: [
+                      Icon(Icons.alarm_add_outlined,size: 13,),
+                      SizedBox(width: 4,),
+                      Text(
+                        "${task.dueDate.day} ${_getMonthName(task.dueDate.month)} ${task.dueDate.year} "
+                            "${_formatHour(task.dueDate.hour)}:${task.dueDate.minute.toString().padLeft(2, '0')} ${_getAmPm(task.dueDate.hour)}",
+                        style: TextStyle(fontSize: 13, color: subtitleColor),
+                      ),
+                    ],
+                  )
                   ],
                 ),
               ),
