@@ -39,7 +39,7 @@ class DoneTask extends StatelessWidget {
             ),
             SizedBox(height: 20),
             if (tasks.isEmpty)
-              Center(child: Text("لا توجد مهام حالياً", style: theme.textTheme.bodyMedium))
+              Center(child: Text("There is no task yet", style: theme.textTheme.bodyMedium))
             else
               ...tasks.map((task) => _buildTaskCard(task, context, statusOptions, taskController,categoryController1,)).toList(),
           ],
@@ -165,19 +165,16 @@ Widget _buildTaskCard(
               icon: Icon(Icons.more_vert, color: subtitleColor),
               onSelected: (String selected) async {
                 if (selected == "Change Status") {
-                  final userId = GetStorage().read("id");
-                  TaskStatus newStatus = TaskStatus.done;
-                  task.status = newStatus;
-                  taskController.tasks.refresh();
-                  await FirebaseFirestore.instance
-                      .collection('users')
-                      .doc(userId)
-                      .collection('tasks')
-                      .doc(task.id)
-                      .update({'status': newStatus.name});
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('تم تغيير الحالة إلى: ${newStatus.name}')),
-                  );
+                  bool changed = await taskController.changeTaskStatus(task, TaskStatus.inProgress);
+                  if (!changed) {
+                    Get.snackbar(
+                      "Access Denied",
+                      "Guests are not allowed to change task status.",
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.red.withOpacity(0.8),
+                      colorText: Colors.white,
+                    );
+                  }
                 }
               },
               itemBuilder: (BuildContext context) => [
@@ -187,6 +184,7 @@ Widget _buildTaskCard(
                 ),
               ],
             ),
+
           ),
         ],
       ),

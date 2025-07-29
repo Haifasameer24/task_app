@@ -5,6 +5,7 @@ import 'package:get_storage/get_storage.dart';
 
 import '../controller/addCatgory_controller.dart';
 import '../controller/home_controller.dart';
+import '../controller/profile_image_controller.dart';
 import '../controller/task_controller.dart';
 import '../screens/setting_screen.dart';
 import '../wedgit/DoneTask.dart';
@@ -21,6 +22,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final profialImageController=Get.put(ProfileImageController());
   final taskController = Get.put(TaskController());
   final categoryController = Get.put(CategoryController());
   final HomeController controller = Get.put(HomeController());
@@ -56,12 +58,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(30),
-                  child: Image.asset(
-                    'assets/images/profail.jpeg',
-                    width: 44,
-                    height: 44,
-                    fit: BoxFit.cover,
-                  ),
+                 child: Obx((){
+                   final imageUrl=profialImageController.photoUrl.value;
+                   return ClipRRect(
+                     borderRadius: BorderRadius.circular(30),
+                     child: imageUrl.isNotEmpty
+                         ? Image.network(imageUrl, width: 44, height: 44, fit: BoxFit.cover)
+                         : Image.asset('assets/images/user_image.jpg', width: 44, height: 44, fit: BoxFit.cover),
+                   );
+                 }),
                 ),
               ],
             ),

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import '../models/tsks_model.dart';
@@ -175,7 +176,7 @@ class TaskController extends GetxController {
           .doc(task.id)
           .set(task.toJson());
       Get.back();
-      Get.snackbar("نجاح", "تم إضافة المهمة بنجاح ✅");
+      Get.snackbar("نجاح", "Done Add task successfully ✅");
 
       clearFields();
       return taskId;
@@ -184,7 +185,90 @@ class TaskController extends GetxController {
       return null;
     }
   }
+  Future<void> deleteTask(TaskModel task) async {
+    final userId = GetStorage().read("id");
+    if (userId == null) return;
 
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('tasks')
+          .doc(task.id)
+          .delete();
+
+      tasks.remove(task);
+    } catch (e) {
+      print("Error deleting task: $e");
+    }
+  }
+  Future<bool> changeTaskStatus(TaskModel task, TaskStatus newStatus) async {
+    // ترجع true إذا تم التغيير، false إذا ضيف (ممنوع)
+    bool isGuest = box.read("is_guest") ?? false;
+    if (isGuest) {
+      return false; // ممنوع التغيير
+    }
+
+    final userId = box.read("id");
+    if (userId == null) return false;
+
+    task.status = newStatus;
+    tasks.refresh();
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('tasks')
+          .doc(task.id)
+          .update({'status': newStatus.name});
+      return true;
+    } catch (e) {
+      print("Error updating task status: $e");
+      return false;
+    }
+  }
+  void setDateTime(DateTime dateTime) {
+    realDueDate = dateTime;
+    taskDate = dateTime;
+    taskTimeController.text = dateTime.toString();
+
+    year = dateTime.year;
+    month = dateTime.month;
+    day = dateTime.day;
+    hour = dateTime.hour;
+    minute = dateTime.minute;
+  }
+
+  Future<void> prepareAndSaveTask(DateTime? selectedDateTime) async {
+    if (selectedDateTime != null) {
+      setDateTime(selectedDateTime);
+    }
+
+    taskTitle = taskNameController.text.trim();
+    taskDesc = taskDescriptionController.text.trim();
+
+    await addTaskWithNotification();
+  }
+
+  Future<void> loadTasksForUser(String userId) async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('tasks')
+          .get();
+
+      final loadedTasks = snapshot.docs.map((doc) {
+        return TaskModel.fromJson(doc.data());
+      }).toList();
+
+      tasks.value = loadedTasks;
+      tasks.refresh();
+    } catch (e) {
+      print("Error loading tasks: $e");
+    }
+  }
   void clearFields() {
     taskNameController.clear();
     taskTimeController.clear();
@@ -195,10 +279,8 @@ class TaskController extends GetxController {
 
   @override
   void onClose() {
-    taskNameController.dispose();
-    taskTimeController.dispose();
-    taskDescriptionController.dispose();
-    taskCatController.dispose();
+    // احذف dispose() لتجنب الخطأ
+    clearFields();
     super.onClose();
   }
 }

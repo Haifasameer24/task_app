@@ -1,13 +1,19 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:getx_course/screens/signup_screen.dart';
+import 'package:getx_course/screens/splash_screen.dart';
 import '../controller/home_controller.dart';
 import '../controller/login_controller.dart';
+import '../controller/profile_image_controller.dart';
 import '../controller/task_controller.dart';
 import '../controller/them_controller.dart';
 
 class SettingsPage extends StatelessWidget {
   final HomeController homeController = Get.put(HomeController());
   final LoginController loginController = Get.put(LoginController());
+  final ProfileImageController profileImageController = Get.put(ProfileImageController());
   final ThemeController themeController = Get.find<ThemeController>();
 
   SettingsPage({Key? key}) : super(key: key);
@@ -23,15 +29,49 @@ class SettingsPage extends StatelessWidget {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const CircleAvatar(
-              radius: 40,
-              backgroundImage: AssetImage('assets/images/profail.jpeg'),
-            ),
-            const SizedBox(height: 12),
+
+            Obx(() {
+              final imageUrl = profileImageController.photoUrl.value;
+              final isUploading = profileImageController.isUploading.value;
+
+              return Column(
+                children: [
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      CircleAvatar(
+                        radius: 40,
+                        backgroundImage: imageUrl.isNotEmpty
+                            ? NetworkImage(imageUrl)
+                            : const AssetImage('assets/images/user_image.jpg') as ImageProvider,
+                      ),
+                      if (isUploading)
+                        const CircularProgressIndicator(), // يظهر أثناء التحميل
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  GestureDetector(
+                    onTap: () async {
+                      await profileImageController.pickAndUploadImage();
+                    },
+                    child: Text(
+                      'Change Profile Picture',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w500,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            }),
+
+            const SizedBox(height: 12,),
             TextField(
               controller: homeController.nameController,
               decoration: InputDecoration(
-                hintText: 'Category Description',
+                hintText: 'Name User',
                 contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
                 filled: true,
                 fillColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
@@ -50,6 +90,7 @@ class SettingsPage extends StatelessWidget {
               await homeController.updateUserName(homeController.nameController.text);
               Navigator.pop(context);
             },
+
             style: ElevatedButton.styleFrom(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               backgroundColor: Theme.of(context).colorScheme.primary,
@@ -62,7 +103,6 @@ class SettingsPage extends StatelessWidget {
       ),
     );
   }
-
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -77,7 +117,7 @@ class SettingsPage extends StatelessWidget {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+              backgroundColor: Colors.deepPurple,
               foregroundColor: Colors.white,
             ),
             onPressed: () {
@@ -135,26 +175,56 @@ class SettingsPage extends StatelessWidget {
                   Stack(
                     alignment: Alignment.bottomRight,
                     children: [
-                      const CircleAvatar(
-                        radius: 50,
-                        backgroundImage: AssetImage('assets/images/profail.jpeg'),
-                      ),
+                      Obx(() {
+                        final imageUrl = profileImageController.photoUrl.value;
+                        return CircleAvatar(
+                          radius: 50,
+                          backgroundImage: imageUrl.isNotEmpty
+                              ? NetworkImage(imageUrl)
+                              : const AssetImage('assets/images/user_image.jpg') as ImageProvider,
+                        );
+                      }),
                       Positioned(
                         bottom: 0,
                         right: 4,
-                        child: GestureDetector(
-                          onTap: () => _showEditDialog(context),
-                          child: Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primary,
-                              shape: BoxShape.circle,
-                              boxShadow: const [
-                                BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))
-                              ],
-                            ),
-                            child: const Icon(Icons.edit, size: 18, color: Colors.white),
-                          ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _buildCircleButton(context, Icons.edit, () {
+                          final box = GetStorage();
+                          bool isGuest = box.read("is_guest") ?? false;
+
+                          if (isGuest) {
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                content: const Text("signup to edite your profile"),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                actionsAlignment: MainAxisAlignment.spaceEvenly,
+                                actions: [
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.deepPurple,
+                                      foregroundColor: Colors.white,
+                                    ),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                      Get.to(() => SignupScreen());
+                                    },
+                                    child: const Text("Sign up"),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(),
+                                    child: const Text("Cancel"),
+                                  ),
+                                ],
+                              ),
+                            );
+                          } else
+                            _showEditDialog(context);
+                        },
+                            )
+                          ],
                         ),
                       ),
                     ],
@@ -164,10 +234,7 @@ class SettingsPage extends StatelessWidget {
                     homeController.userName.value,
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black87),
                   )),
-                  Text(
-                    'haifa@example.com',
-                    style: TextStyle(color: isDark ? Colors.grey[400] : Colors.grey[600]),
-                  ),
+                  SizedBox(height: 10,)
                 ],
               ),
             ),
@@ -201,8 +268,74 @@ class SettingsPage extends StatelessWidget {
             _buildTile(context, Icons.call, 'Contact us', () {}, isDark),
             _buildTile(context, Icons.info_outline, 'About App', () {}, isDark),
             _buildTile(context, Icons.logout, 'Log out', () {
-              _showLogoutDialog(context); // استدعاء الـ Dialog عند الضغط
+              final isGuest = GetStorage().read("is_guest") ?? false;
+              if (isGuest) {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    content: const Text("Signup to Save your Tasks"),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    actionsAlignment: MainAxisAlignment.spaceEvenly,
+                    actions: [
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.deepPurple,
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          Get.to(() => SignupScreen());
+                        },
+                        child: const Text("Sign up"),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              content: const Text("Signup to save your tasks"),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              actions: [
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.deepPurple,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  onPressed: () {
+                                    Navigator.of(ctx).pop();
+                                    Get.to(() => SignupScreen());
+                                  },
+                                  child: const Text("Sign up"),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    final box = GetStorage();
+                                    FirebaseAuth.instance.signOut();
+                                    box.erase();
+                                    Get.offAll(() => SplashScreen());
+                                  },
+                                  child: const Text("Logout"),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                        child: const Text("Logout"),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text("Cancel"),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              else {
+                _showLogoutDialog(context);
+              }
             }, isDark),
+
           ]),
 
           const SizedBox(height: 20),
@@ -210,4 +343,18 @@ class SettingsPage extends StatelessWidget {
       ),
     );
   }
+}
+Widget _buildCircleButton(BuildContext context, IconData icon, VoidCallback onTap) {
+  return GestureDetector(
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        shape: BoxShape.circle,
+        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))],
+      ),
+      child: Icon(icon, size: 18, color: Colors.white),
+    ),
+  );
 }

@@ -5,6 +5,9 @@ import 'package:get_storage/get_storage.dart';
 import 'package:getx_course/controller/signup_controllr.dart';
 import 'package:lottie/lottie.dart';
 
+import '../controller/login_controller.dart';
+import 'login_screen.dart';
+
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
 
@@ -105,7 +108,9 @@ class _SignupScreenState extends State<SignupScreen> {
               SizedBox(height: screenHeight * 0.04),
 
               TextButton(
-                onPressed: () => Get.back(),
+                onPressed: () {
+                  Get.offAll(() => LoginScreen());
+                },
                 child: Text(
                   "You have an account?",
                   style: TextStyle(color: theme.colorScheme.primary),

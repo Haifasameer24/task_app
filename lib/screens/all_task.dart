@@ -37,7 +37,7 @@ class AllTasksPage extends StatelessWidget {
                 const SizedBox(height: 16),
                 Expanded(
                   child: tasks.isEmpty
-                      ? const Center(child: Text("لا توجد مهام حالياً"))
+                      ? const Center(child: Text("No Tasks yest"))
                       : ListView.builder(
                     itemCount: tasks.length,
                     itemBuilder: (context, index) =>
@@ -80,7 +80,7 @@ class AllTasksPage extends StatelessWidget {
 
             taskController.tasks.remove(task);
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("تم حذف المهمة '${task.name}'")),
+              SnackBar(content: Text("Done task deleted'${task.name}'")),
             );
           },
         ),

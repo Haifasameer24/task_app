@@ -103,41 +103,73 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     SizedBox(height: 20),
-                      SizedBox(
-                        width: double.infinity,
-                        child: Obx(() {
-                          if (loginController.isLoading.value) {
-                            return const Center(child: CupertinoActivityIndicator(),);
-                          }
-                          return ElevatedButton(
-                            onPressed: () {
-                              loginController.login();
-                            },
-                            style: ElevatedButton.styleFrom(
-                              minimumSize: const Size(double.infinity, 48),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                    // مكان الزر داخل الـ Column بعد زر "Login" وزر "Sign Up"
+                    Column(
+                      children: [
+                        // زر تسجيل الدخول العادي
+                        SizedBox(
+                          width: double.infinity,
+                          child: Obx(() {
+                            if (loginController.isLoading.value) {
+                              return const Center(child: CupertinoActivityIndicator());
+                            }
+                            return ElevatedButton(
+                              onPressed: () {
+                                loginController.login();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                minimumSize: const Size(double.infinity, 48),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                backgroundColor: theme.colorScheme.primary,
+                                foregroundColor: Colors.white,
+                                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                               ),
-                              backgroundColor: theme.colorScheme.primary,
-                              foregroundColor: Colors.white,
-                              textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                            ),
-                            child: Text("Login"),
-                          );
+                              child: Text("Login"),
+                            );
+                          }),
+                        ),
+                        SizedBox(height: 12),
 
-                        }),
-                      ),
+                        SizedBox(
+                          width: double.infinity,
+                          child: Obx(() {
+                            if (loginController.isLoadingguest.value) {
+                              return const Center(child: CupertinoActivityIndicator());
+                            }
+                            return ElevatedButton(
+                              onPressed: () {
+                                loginController.signInAsGuest();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                minimumSize: const Size(double.infinity, 48),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                backgroundColor: theme.colorScheme.primary,
+                                foregroundColor: Colors.white,
+                                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                              ),
+                              child: Text("Login as Guest"),
+                            );
+                          }),
+                        ),
 
-                    SizedBox(height: 16),
-                    TextButton(
-                      onPressed: () {
-                        Get.to(() => SignupScreen());
-                      },
-                      child: Text(
-                        "Don't have an account? Sign Up",
-                        style: TextStyle(color: theme.colorScheme.primary),
-                      ),
+                        SizedBox(height: 16),
+                        // زر "Sign Up"
+                        TextButton(
+                          onPressed: () {
+                            Get.offAll(() => SignupScreen());
+                          },
+                          child: Text(
+                            "Don't have an account? Sign Up",
+                            style: TextStyle(color: theme.colorScheme.primary),
+                          ),
+                        ),
+                      ],
                     ),
+
                   ],
                 ),
               ),

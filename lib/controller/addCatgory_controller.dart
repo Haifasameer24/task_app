@@ -19,11 +19,11 @@ class CategoryController extends GetxController {
     super.onInit();
     fetchCategories();
   }
-
   void fetchCategories() {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
+    // ❌ لا تمنع الزائر، خليه يشوف بياناته طول ما هو فاتح التطبيق
     FirebaseFirestore.instance
         .collection('users')
         .doc(user.uid)
@@ -86,6 +86,24 @@ class CategoryController extends GetxController {
       Get.snackbar("Added", "Added successful");
     } catch (e) {
       Get.snackbar("Error", e.toString());
+    }
+  }
+  Future<void> loadCatForUser(String userId) async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('categories')
+          .get();
+
+      final loadedCategories = snapshot.docs.map((doc) {
+        return Category.fromMap(doc.data(), doc.id);
+      }).toList();
+
+      categories.value = loadedCategories;
+      categories.refresh(); // لتحديث الواجهة إذا لزم
+    } catch (e) {
+      print("Error loading categories: $e");
     }
   }
 

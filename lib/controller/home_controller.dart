@@ -2,15 +2,18 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:getx_course/controller/profile_image_controller.dart';
 
 class HomeController extends GetxController{
 
   final TextEditingController nameController = TextEditingController();
-    final box = GetStorage();
+   final profileImageController=Get.put(ProfileImageController());
+   final box=GetStorage();
     var userName=''.obs;
     @override
     void onInit(){
       super.onInit();
+      profileImageController.loadProfileImage();
       userName.value=box.read("name") ??"";
     }
   Future<void> updateUserName(String newName) async {

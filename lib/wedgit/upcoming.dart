@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:getx_course/screens/signup_screen.dart';
 import '../controller/addCatgory_controller.dart';
 import '../controller/task_controller.dart';
 import '../models/tsks_model.dart';
@@ -14,10 +15,10 @@ class UpComingTasks extends StatelessWidget {
 
   final List<String> statusOption = ["inProgress"];
 
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     return Container(
       padding: EdgeInsets.all(16.0),
       child: Obx(() {
@@ -60,29 +61,13 @@ class UpComingTasks extends StatelessWidget {
         motion: ScrollMotion(),
         dismissible: DismissiblePane(
           onDismissed: () async {
-            final userId = GetStorage().read("id");
-            await FirebaseFirestore.instance
-                .collection('users')
-                .doc(userId)
-                .collection('tasks')
-                .doc(task.id)
-                .delete();
-            taskController.tasks.remove(task);
+            await taskController.deleteTask(task);
           },
         ),
         children: [
           SlidableAction(
             onPressed: (_) async {
-              final userId = FirebaseAuth.instance.currentUser?.uid;
-              if (userId == null) return;
-
-              await FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(userId)
-                  .collection('tasks')
-                  .doc(task.id)
-                  .delete();
-              taskController.tasks.remove(task);
+              await taskController.deleteTask(task);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text("'Task Deleted'${task.name}'")),
               );
@@ -168,22 +153,43 @@ class UpComingTasks extends StatelessWidget {
               padding: const EdgeInsets.only(right: 12),
               child: PopupMenuButton<String>(
                 icon: Icon(Icons.more_vert, color: subtitleColor),
-                onSelected: (String selected) async {
-                  if (selected == "Change Status") {
-                    final userId = GetStorage().read("id");
-                    TaskStatus newStatus = TaskStatus.inProgress;
-                    task.status = newStatus;
-                    taskController.tasks.refresh();
+                  onSelected: (String selected) async {
+                    if (selected == "Change Status") {
+                      final box = GetStorage();
+                      bool isGuest = box.read("is_guest") ?? false;
+                      if (isGuest) {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            content: const Text("Signup to Change Task Status"),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            actionsAlignment: MainAxisAlignment.spaceEvenly,
+                            actions: [
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.deepPurple,
+                                  foregroundColor: Colors.white,
+                                ),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                  Get.to(() => SignupScreen());
+                                },
+                                child: const Text("Sign up"),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: const Text("Cancel"),
+                              ),
+                            ],
+                          ),
+                        );
+                      }  else {
+                      await taskController.changeTaskStatus(task,TaskStatus.inProgress);
+                      }
+                    }
+                  },
 
-                    await FirebaseFirestore.instance
-                        .collection('users')
-                        .doc(userId)
-                        .collection('tasks')
-                        .doc(task.id)
-                        .update({'status': newStatus.name});
-                  }
-                },
-                itemBuilder: (BuildContext context) => [
+                  itemBuilder: (BuildContext context) => [
                   PopupMenuItem(
                     value: "Change Status",
                     child: Text("Mark as In Progress"),

@@ -4,7 +4,7 @@ import '../controller/addCatgory_controller.dart';
 import '../screens/CategoryDetailPage.dart';
 
 class ListCatigroies extends StatelessWidget {
-  final CategoryController addCatogory = Get.put(CategoryController());
+  final CategoryController addCatogory = Get.find();
 
   @override
   Widget build(BuildContext context) {
@@ -106,7 +106,7 @@ class ListCatigroies extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       TextField(
-                        controller: addCatogory.CatdescController,
+                        controller: addCatogory.CatnameController,
                         decoration: InputDecoration(
                           hintText: 'Category Name',
                           contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 16),

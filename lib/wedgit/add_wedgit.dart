@@ -76,15 +76,7 @@ class _AddButtonState extends State<AddButton> {
                 if (pickedDateTime != null) {
                   setState(() {
                     selectedDateTime = pickedDateTime;
-                    taskController.taskTimeController.text = pickedDateTime.toString();
-                    taskController.realDueDate = pickedDateTime;
-
-                    taskController.taskDate = pickedDateTime;
-                    taskController.year = pickedDateTime.year;
-                    taskController.month = pickedDateTime.month;
-                    taskController.day = pickedDateTime.day;
-                    taskController.hour = pickedDateTime.hour;
-                    taskController.minute = pickedDateTime.minute;
+                   taskcontroller.setDateTime(pickedDateTime);
                   });
                 }
               },
@@ -151,19 +143,11 @@ class _AddButtonState extends State<AddButton> {
 
             ElevatedButton(
               onPressed: () async {
-                taskController.taskTitle = taskController.taskNameController.text.trim();
-                taskController.taskDesc = taskController.taskDescriptionController.text.trim();
-                taskController.taskDate = selectedDateTime;
-                taskController.year = year = selectedDateTime?.year;
-                taskController.month = month = selectedDateTime?.month;
-                taskController.day = day = selectedDateTime?.day;
-                taskController.hour = hour = selectedDateTime?.hour;
-                taskController.minute = minute = selectedDateTime?.minute;
 
-                await taskController.addTaskWithNotification();
+                await taskController.prepareAndSaveTask(selectedDateTime);
               },
               style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 48), // ياخذ كامل العرض وارتفاع 48
+                minimumSize: const Size(double.infinity, 48),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -173,6 +157,7 @@ class _AddButtonState extends State<AddButton> {
               ),
               child: const Text('Done'),
             ),
+
 
           ],
         ),
