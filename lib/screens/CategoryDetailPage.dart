@@ -237,7 +237,7 @@ class CategoryDetailPage extends StatelessWidget {
       case TaskStatus.inProgress:
         return Colors.orange;
       case TaskStatus.done:
-        return Colors.black;
+        return Colors.green;
       default:
         return Colors.grey;
     }
