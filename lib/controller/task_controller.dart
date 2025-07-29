@@ -176,7 +176,7 @@ class TaskController extends GetxController {
           .doc(task.id)
           .set(task.toJson());
       Get.back();
-      Get.snackbar("نجاح", "Done Add task successfully ✅");
+      Get.snackbar("Done", "Done Add task successfully ✅");
 
       clearFields();
       return taskId;
