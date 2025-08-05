@@ -1,8 +1,10 @@
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:getx_course/controller/signup_controllr.dart';
+import 'package:heroicons/heroicons.dart';
 import 'package:lottie/lottie.dart';
 
 import '../controller/login_controller.dart';
@@ -20,9 +22,11 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _obsecureConfirmPassword = true;
   final GetStorage box = GetStorage();
 
+
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(SignUpController());
+    final loginController = Get.put(LoginController());
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -44,7 +48,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
               _buildTextField(
                 controller: controller.nameController,
-                icon: Icons.person,
+                icon: HeroIcons.user,
                 hint: "Enter your name",
                 theme: theme,
                 isDark: isDark,
@@ -53,7 +57,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
               _buildTextField(
                 controller: controller.emailController,
-                icon: Icons.email,
+                icon: HeroIcons.envelope,
                 hint: "Enter E-mail",
                 theme: theme,
                 isDark: isDark,
@@ -62,7 +66,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
               _buildTextField(
                 controller: controller.passwordController,
-                icon: _obsecurePassword ? Icons.visibility_off : Icons.visibility,
+                icon: _obsecurePassword ? HeroIcons.eye : HeroIcons.eyeSlash,
                 hint: "Enter your password",
                 obscure: _obsecurePassword,
                 toggleObscure: () {
@@ -75,7 +79,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
               _buildTextField(
                 controller: controller.passwordConfirmController,
-                icon: _obsecureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                icon: _obsecureConfirmPassword ? HeroIcons.eyeSlash : HeroIcons.eye,
                 hint: "Confirm password",
                 obscure: _obsecureConfirmPassword,
                 toggleObscure: () {
@@ -86,27 +90,95 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
               SizedBox(height: screenHeight * 0.03),
 
+              // زر تسجيل الدخول العادي
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                child: Obx(() {
+                  if (controller.isSignup.value) {
+                    return const Center(child: CupertinoActivityIndicator());
+                  }
+                  return ElevatedButton(
+                    onPressed: () {
+                      controller.register();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 48),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: Colors.white,
+                      textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                     ),
-                    padding: EdgeInsets.symmetric(
-                      vertical: screenHeight * 0.02,
-                    ),
-                  ),
-                  onPressed: () => controller.register(),
-                  child: const Text(
-                    "Sign up",
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                  ),
-                ),
+                    child: Text("SignUp"),
+                  );
+                }),
               ),
-              SizedBox(height: screenHeight * 0.04),
+              SizedBox(height: 10,),
+              Row(
+                children: [
+                  Expanded(
+                    child: Divider(
+                      color: Colors.grey.shade400,
+                      thickness: 1,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Text(
+                      "OR",
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurface.withOpacity(0.6),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Divider(
+                      color: Colors.grey.shade400,
+                      thickness: 1,
+                    ),
+                  ),
+                ],
+              ),
 
+              SizedBox(height: 10),
+
+              // زر Sign in with Google
+              SizedBox(
+                width: double.infinity,
+                child: Obx(() {
+                  if (loginController.isGoogle.value) {
+                    return const Center(child: CupertinoActivityIndicator());
+                  }
+                  return OutlinedButton.icon(
+                    onPressed: () {
+                      loginController.signInWithGoogle();
+                    },
+                    icon: Image.asset(
+                      'assets/images/google_image.jpg',
+                      height: 20,
+                      width: 24,
+                    ),
+                    label: Text(
+                      "Sign in with Google",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 48),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      side: BorderSide(
+                        color:Colors.grey, // لون البوردر حسب الثيم
+                        width: 2,
+                      ),
+                      foregroundColor:Colors.black, // لون النص
+                      backgroundColor: Colors.white, // بدون خلفية
+                    ),
+                  );
+                }),
+              ),
               TextButton(
                 onPressed: () {
                   Get.offAll(() => LoginScreen());
@@ -125,7 +197,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   Widget _buildTextField({
     required TextEditingController controller,
-    required IconData icon,
+    required HeroIcons icon,
     required String hint,
     bool obscure = false,
     VoidCallback? toggleObscure,
@@ -138,10 +210,10 @@ class _SignupScreenState extends State<SignupScreen> {
       style: TextStyle(color: theme.textTheme.bodyLarge?.color),
       decoration: InputDecoration(
         prefixIcon: toggleObscure == null
-            ? Icon(icon, color: theme.iconTheme.color)
+            ? HeroIcon(icon, color: theme.iconTheme.color)
             : GestureDetector(
           onTap: toggleObscure,
-          child: Icon(icon, color: theme.iconTheme.color),
+          child: HeroIcon(icon, color: theme.iconTheme.color),
         ),
         hintText: hint,
         hintStyle: TextStyle(color: theme.hintColor),

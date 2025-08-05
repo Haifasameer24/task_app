@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:heroicons/heroicons.dart';
 import '../controller/addCatgory_controller.dart';
 import '../screens/CategoryDetailPage.dart';
 
@@ -20,9 +22,9 @@ class ListCatigroies extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
           child: Text(
             'Categories',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            style: GoogleFonts.inter(
+              textStyle: Theme.of(context).textTheme.titleLarge,
               fontWeight: FontWeight.bold,
-              fontFamily: "RobotoSlab",
             ),
           ),
         ),
@@ -219,10 +221,10 @@ class ListCatigroies extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.add, color: Theme.of(context).iconTheme.color, size: 18),
+            HeroIcon(HeroIcons.plus, color: Theme.of(context).iconTheme.color, size: 18),
             SizedBox(width: 6),
             Text(
-              'Add',
+              'ADD',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],

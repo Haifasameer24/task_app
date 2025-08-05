@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:getx_course/controller/task_controller.dart';
 import '../models/Category.dart';
 
 
@@ -11,6 +13,7 @@ class CategoryController extends GetxController {
   Color? selectedColor;
 
   final categories = <Category>[].obs;
+
 
   RxString searchText = ''.obs;
 
@@ -117,6 +120,48 @@ class CategoryController extends GetxController {
     final cat = categories.firstWhereOrNull((c) => c.name == categoryName);
     return cat?.color;
   }
+  // Future<void> deleteCategoryAndTasks(Category category) async {
+  //   final userId = GetStorage().read("id");
+  //   final taskController = Get.find<TaskController>(); // عشان نتحكم بالمهام
+  //   if (userId == null) return;
+  //
+  //   try {
+  //     final firestore = FirebaseFirestore.instance;
+  //
+  //     // 1️⃣ حذف جميع المهام المرتبطة بهذه الكاتيجوري من Firestore
+  //     final tasksSnapshot = await firestore
+  //         .collection('users')
+  //         .doc(userId)
+  //         .collection('tasks')
+  //         .where('cat', isEqualTo: category.id)
+  //         .get();
+  //
+  //     for (var doc in tasksSnapshot.docs) {
+  //       await doc.reference.delete();
+  //     }
+  //
+  //     // 2️⃣ حذف الكاتيجوري نفسه من Firestore
+  //     await firestore
+  //         .collection('users')
+  //         .doc(userId)
+  //         .collection('categories')
+  //         .doc(category.id)
+  //         .delete();
+  //
+  //     // 3️⃣ تحديث القوائم المحلية (حذف المهام من الـ TaskController)
+  //     taskController.tasks.removeWhere((task) => task.cat == category.name);
+  //
+  //     // 4️⃣ تحديث قائمة الكاتيجوري إذا موجودة عندك محليًا
+  //     // categoryController.categories.removeWhere((c) => c.id == category.id);
+  //
+  //     Get.snackbar("Category Deleted", "All related tasks removed");
+  //   } catch (e) {
+  //     print("Error deleting category: $e");
+  //     Get.snackbar("Error", "Could not delete category");
+  //   }
+  // }
+
+
   @override
   void onClose() {
     CatnameController.dispose();

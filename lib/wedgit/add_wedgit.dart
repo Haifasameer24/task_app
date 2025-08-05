@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:heroicons/heroicons.dart';
 import '../controller/addCatgory_controller.dart';
 import '../controller/task_controller.dart';
 
@@ -136,7 +137,7 @@ class _AddButtonState extends State<AddButton> {
             SizedBox(height: 16),
             Obx(() => SwitchListTile(
               title: Text('Send Alert Notifications', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
-              secondary: Icon(Icons.notifications_active, color: theme.colorScheme.primary),
+              secondary: HeroIcon(HeroIcons.bellAlert, color: theme.colorScheme.primary),
               value: taskcontroller.haveNotify.value,
               onChanged: (val) => taskcontroller.haveNotify.value = val,
             )),

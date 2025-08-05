@@ -2,6 +2,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:heroicons/heroicons.dart';
 
 import '../controller/addCatgory_controller.dart';
 import '../controller/home_controller.dart';
@@ -47,7 +49,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Text(
                       "Hello, ${controller.userName.value}!",
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                      style: GoogleFonts.poppins(
+                        textStyle: Theme.of(context).textTheme.titleLarge,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     SizedBox(height: 4),
                     Text(
@@ -84,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                     decoration: InputDecoration(
                       hintText: filterMode == "Tasks" ? 'Search tasks...' : 'Search categories...',
-                      prefixIcon: Icon(Icons.search),
+                      prefixIcon: HeroIcon(HeroIcons.magnifyingGlass),
                       contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 16),
                       filled: true,
                       fillColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
@@ -97,7 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 SizedBox(width: 8),
                 IconButton(
-                  icon: Icon(Icons.filter_list, color: Theme.of(context).colorScheme.primary),
+                  icon: HeroIcon(HeroIcons.adjustmentsHorizontal, color: Theme.of(context).colorScheme.primary),
                   onPressed: () => _showFilterDialog(context),
                 ),
               ],
@@ -147,11 +152,12 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildTabItem(icon: Icons.home_rounded, index: 0),
-            _buildTabItem(icon: Icons.list_alt_rounded, index: 1), // ← يستدعي صفحة AllTasks
+            Container(
+                child: _buildTabItem(icon: HeroIcons.home, index: 0)),
+            _buildTabItem(icon: HeroIcons.rectangleStack, index: 1), // ← يستدعي صفحة AllTasks
             _buildAddButton(primaryColor),
-            _buildTabItem(icon: Icons.notifications_none, index: 2),
-            _buildTabItem(icon: Icons.settings_rounded, index: 3),
+              _buildTabItem(icon: HeroIcons.bell, index: 2),
+            _buildTabItem(icon: HeroIcons.cog6Tooth, index: 3),
           ],
         ),
       ),
@@ -172,14 +178,15 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Container(
         padding: EdgeInsets.all(8),
         decoration: BoxDecoration(color: primaryColor, shape: BoxShape.circle),
-        child: Icon(Icons.add, color: Colors.white, size: 24),
+        child: HeroIcon(HeroIcons.plus, color: Colors.white, size: 24),
       ),
     );
   }
 
-  Widget _buildTabItem({required IconData icon, required int index}) {
+  Widget _buildTabItem({required HeroIcons icon, required int index}) {
     final isSelected = _selectedIndex == index;
-    final primaryColor = Theme.of(context).colorScheme.primary;
+    final backgroundColor = Colors.deepPurple;
+    final iconColor = Colors.white;
 
     return GestureDetector(
       onTap: () {
@@ -187,13 +194,25 @@ class _HomeScreenState extends State<HomeScreen> {
           _selectedIndex = index;
         });
       },
-      child: Icon(
-        icon,
-        size: 24,
-        color: isSelected ? primaryColor : Theme.of(context).iconTheme.color?.withOpacity(0.6),
+      child: Container(
+        padding: EdgeInsets.all(7),
+        decoration: isSelected
+            ? BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(12),
+        )
+            : null,
+        child: HeroIcon(
+          icon,
+          style: HeroIconStyle.outline,
+          size: 24,
+          color: isSelected ? iconColor : Colors.grey[700],
+        ),
       ),
     );
   }
+
+
 
   // ← هذا فقط يفتح صفحة خارجية عند الضغط
   Widget _buildExternalTab({required IconData icon, required Widget target}) {

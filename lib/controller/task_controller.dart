@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import '../models/tsks_model.dart';
@@ -30,7 +31,6 @@ class TaskController extends GetxController {
   final RxBool isNotificationOn = true.obs;
   final RxBool isLoading = true.obs;
   final RxBool haveNotify = true.obs;
-
   @override
   void onInit() {
     super.onInit();
@@ -110,6 +110,7 @@ class TaskController extends GetxController {
   Future<void> addTaskWithNotification() async {
     if (taskTitle == null || taskTitle!.isEmpty ||
         taskDesc == null || taskDesc!.isEmpty ||
+        taskDate == null ||
         taskDate == null ||
         year == null || month == null || day == null || hour == null || minute == null) {
       Get.snackbar("خطأ", "يرجى تعبئة كل الحقول وتحديد التاريخ والوقت");
@@ -198,10 +199,15 @@ class TaskController extends GetxController {
           .delete();
 
       tasks.remove(task);
+      Get.snackbar("Task Deleted", "${task.name}");
     } catch (e) {
       print("Error deleting task: $e");
     }
   }
+
+
+
+
   Future<bool> changeTaskStatus(TaskModel task, TaskStatus newStatus) async {
     // ترجع true إذا تم التغيير، false إذا ضيف (ممنوع)
     bool isGuest = box.read("is_guest") ?? false;
@@ -239,6 +245,14 @@ class TaskController extends GetxController {
     hour = dateTime.hour;
     minute = dateTime.minute;
   }
+  String getAmPm(int hour) {
+    return hour >= 12 ? "PM" : "AM";
+  }
+  String formatHour(int hour) {
+    final formatted = hour % 12 == 0 ? 12 : hour % 12;
+    return formatted.toString().padLeft(2, '0');
+  }
+
 
   Future<void> prepareAndSaveTask(DateTime? selectedDateTime) async {
     if (selectedDateTime != null) {
@@ -276,11 +290,45 @@ class TaskController extends GetxController {
     taskCatController.clear();
     realDueDate = null;
   }
+  Future<void> updateTask(TaskModel updatedTask) async {
+    final userId = box.read("id");
+    if (userId == null) {
+      Get.snackbar("Error", "User not logged in");
+      return;
+    }
+
+    try {
+      await FirebaseFirestore.instance
+          .collection("users")
+          .doc(userId)
+          .collection("tasks")
+          .doc(updatedTask.id)
+          .update(updatedTask.toJson());
+
+      int index = tasks.indexWhere((task) => task.id == updatedTask.id);
+      if (index != -1) {
+        tasks[index] = updatedTask;
+        tasks.refresh();
+      }
+      Get.snackbar("Success", "Task updated successfully.");
+    } catch (e) {
+      Get.snackbar("Error", "Failed to update task: $e");
+    }
+  }
+
 
   @override
   void onClose() {
     // احذف dispose() لتجنب الخطأ
     clearFields();
     super.onClose();
+  }
+
+  String getMonthName(int month) {
+    const monthNames = [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
+    return monthNames[month - 1];
   }
 }

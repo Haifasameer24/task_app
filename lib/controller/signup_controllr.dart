@@ -17,8 +17,9 @@ class SignUpController extends GetxController {
   final TextEditingController passwordConfirmController = TextEditingController();
 
   final box = GetStorage();
-
+  final isSignup=false.obs;
   Future<void> register() async {
+    isSignup.value=true;
     final name = nameController.text.trim();
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
@@ -138,6 +139,7 @@ class SignUpController extends GetxController {
       final cat = Get.put(CategoryController());
       await taskController.loadTasksForUser(user.uid);
       await cat.loadCatForUser(user.uid);
+      isSignup.value=false;
 
       Get.offAll(HomeScreen());
 

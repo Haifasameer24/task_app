@@ -8,6 +8,7 @@ class HomeController extends GetxController{
 
   final TextEditingController nameController = TextEditingController();
    final profileImageController=Get.put(ProfileImageController());
+   final TextEditingController email=TextEditingController();
    final box=GetStorage();
     var userName=''.obs;
     @override

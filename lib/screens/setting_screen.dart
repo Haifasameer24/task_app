@@ -4,11 +4,13 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:getx_course/screens/signup_screen.dart';
 import 'package:getx_course/screens/splash_screen.dart';
+import 'package:heroicons/heroicons.dart';
 import '../controller/home_controller.dart';
 import '../controller/login_controller.dart';
 import '../controller/profile_image_controller.dart';
 import '../controller/task_controller.dart';
 import '../controller/them_controller.dart';
+import '../models/user_model.dart';
 
 class SettingsPage extends StatelessWidget {
   final HomeController homeController = Get.put(HomeController());
@@ -143,11 +145,11 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildTile(BuildContext context, IconData icon, String title, VoidCallback onTap, bool isDark) {
+  Widget _buildTile(BuildContext context, HeroIcons icon, String title, VoidCallback onTap, bool isDark) {
     return ListTile(
-      leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
+      leading: HeroIcon(icon, color: Theme.of(context).colorScheme.primary),
       title: Text(title, style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
-      trailing: Icon(Icons.arrow_forward_ios, size: 18, color: Theme.of(context).colorScheme.primary),
+      trailing: HeroIcon(HeroIcons.chevronRight, size: 18, color: Theme.of(context).colorScheme.primary),
       onTap: onTap,
     );
   }
@@ -190,7 +192,7 @@ class SettingsPage extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            _buildCircleButton(context, Icons.edit, () {
+                            _buildCircleButton(context, HeroIcons.pencilSquare, () {
                           final box = GetStorage();
                           bool isGuest = box.read("is_guest") ?? false;
 
@@ -234,7 +236,16 @@ class SettingsPage extends StatelessWidget {
                     homeController.userName.value,
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black87),
                   )),
-                  SizedBox(height: 10,)
+                  Text(
+                    FirebaseAuth.instance.currentUser?.email ?? "",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w400,
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
+                  )
+
+
                 ],
               ),
             ),
@@ -246,14 +257,14 @@ class SettingsPage extends StatelessWidget {
           _buildSettingCard(context, [
             Obx(() => SwitchListTile(
               title: Text('Notifications', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
-              secondary: Icon(Icons.notifications_active, color: theme.colorScheme.primary),
+              secondary: HeroIcon(HeroIcons.bellAlert, color: theme.colorScheme.primary),
               value: taskcontroller.isNotificationOn.value,
               onChanged: (val) => taskcontroller.isNotificationOn.value = val,
             )),
             const SizedBox(height: 10),
             Obx(() => SwitchListTile(
               title: Text('Dark Mode', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
-              secondary: Icon(Icons.dark_mode, color: theme.colorScheme.primary),
+              secondary: HeroIcon(HeroIcons.moon, color: theme.colorScheme.primary),
               value: themeController.isDarkMode.value,
               onChanged: (val) => themeController.toggleTheme(val),
             )),
@@ -263,11 +274,11 @@ class SettingsPage extends StatelessWidget {
 
           // Info Section
           _buildSettingCard(context, [
-            _buildTile(context, Icons.lock, 'Privacy', () {}, isDark),
-            _buildTile(context, Icons.help_outline, 'Help & Support', () {}, isDark),
-            _buildTile(context, Icons.call, 'Contact us', () {}, isDark),
-            _buildTile(context, Icons.info_outline, 'About App', () {}, isDark),
-            _buildTile(context, Icons.logout, 'Log out', () {
+            _buildTile(context, HeroIcons.lockClosed, 'Privacy', () {}, isDark),
+            _buildTile(context, HeroIcons.questionMarkCircle, 'Help & Support', () {}, isDark),
+            _buildTile(context, HeroIcons.phone, 'Contact us', () {}, isDark),
+            _buildTile(context, HeroIcons.informationCircle, 'About App', () {}, isDark),
+            _buildTile(context, HeroIcons.arrowLeftStartOnRectangle, 'Log out', () {
               final isGuest = GetStorage().read("is_guest") ?? false;
               if (isGuest) {
                 showDialog(
@@ -344,7 +355,7 @@ class SettingsPage extends StatelessWidget {
     );
   }
 }
-Widget _buildCircleButton(BuildContext context, IconData icon, VoidCallback onTap) {
+Widget _buildCircleButton(BuildContext context, HeroIcons icon, VoidCallback onTap) {
   return GestureDetector(
     onTap: onTap,
     child: Container(
@@ -354,7 +365,7 @@ Widget _buildCircleButton(BuildContext context, IconData icon, VoidCallback onTa
         shape: BoxShape.circle,
         boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))],
       ),
-      child: Icon(icon, size: 18, color: Colors.white),
+      child: HeroIcon(icon, size: 18, color: Colors.white),
     ),
   );
 }

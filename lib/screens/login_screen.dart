@@ -1,8 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_launcher_icons/constants.dart';
 import 'package:get/get.dart';
 import 'package:getx_course/controller/login_controller.dart';
 import 'package:getx_course/screens/signup_screen.dart';
+import 'package:heroicons/heroicons.dart';
 import 'package:lottie/lottie.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -61,10 +63,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   children: [
                     TextField(
+                      key: Key('user_email'),
                       controller: loginController.emailController,
                       style: TextStyle(color: theme.textTheme.bodyLarge?.color),
                       decoration: InputDecoration(
-                        prefixIcon: Icon(Icons.email, color: theme.iconTheme.color),
+                        prefixIcon: HeroIcon(HeroIcons.envelope,style: HeroIconStyle.outline, color: theme.iconTheme.color),
                         hintText: "Enter your email",
                         hintStyle: TextStyle(color: theme.hintColor),
                         border: OutlineInputBorder(
@@ -77,6 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     SizedBox(height: 16),
                     TextFormField(
+                      key: Key('user_password'),
                       controller: loginController.passwordController,
                       obscureText: _obsecurePassword,
                       style: TextStyle(color: theme.textTheme.bodyLarge?.color),
@@ -87,9 +91,11 @@ class _LoginScreenState extends State<LoginScreen> {
                               _obsecurePassword = !_obsecurePassword;
                             });
                           },
-                          child: Icon(
-                            _obsecurePassword ? Icons.visibility_off : Icons.visibility,
+                          child: HeroIcon(
+                            _obsecurePassword ? HeroIcons.eyeSlash: HeroIcons.eye,
+                            style: HeroIconStyle.outline,
                             color: theme.iconTheme.color,
+                            size: 24,
                           ),
                         ),
                         hintText: "Enter your password",
@@ -106,7 +112,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     // مكان الزر داخل الـ Column بعد زر "Login" وزر "Sign Up"
                     Column(
                       children: [
-                        // زر تسجيل الدخول العادي
+                        // زر Login
                         SizedBox(
                           width: double.infinity,
                           child: Obx(() {
@@ -130,8 +136,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             );
                           }),
                         ),
+
                         SizedBox(height: 12),
 
+                        // زر Login as Guest
                         SizedBox(
                           width: double.infinity,
                           child: Obx(() {
@@ -157,7 +165,77 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
 
                         SizedBox(height: 16),
-                        // زر "Sign Up"
+
+                        // خط مع OR
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Divider(
+                                color: Colors.grey.shade400,
+                                thickness: 1,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                              child: Text(
+                                "OR",
+                                style: TextStyle(
+                                  color: theme.colorScheme.onSurface.withOpacity(0.6),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Divider(
+                                color: Colors.grey.shade400,
+                                thickness: 1,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        SizedBox(height: 10),
+
+                        // زر Sign in with Google
+                        SizedBox(
+                          width: double.infinity,
+                          child: Obx(() {
+                            if (loginController.isGoogle.value) {
+                              return const Center(child: CupertinoActivityIndicator());
+                            }
+                            return OutlinedButton.icon(
+                              onPressed: () {
+                                loginController.signInWithGoogle();
+                              },
+                              icon: Image.asset(
+                                'assets/images/google_image.jpg',
+                                height: 20,
+                                width: 24,
+                              ),
+                              label: Text(
+                                "Sign in with Google",
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                minimumSize: const Size(double.infinity, 48),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                side: BorderSide(
+                                  color:Colors.grey, // لون البوردر حسب الثيم
+                                  width: 2,
+                                ),
+                                foregroundColor:Colors.black, // لون النص
+                                backgroundColor: Colors.white, // بدون خلفية
+                              ),
+                            );
+                          }),
+                        ),
+
+
+                        SizedBox(height: 16),
+
+                        // زر Sign Up
                         TextButton(
                           onPressed: () {
                             Get.offAll(() => SignupScreen());
@@ -168,7 +246,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ],
-                    ),
+                    )
+
 
                   ],
                 ),
