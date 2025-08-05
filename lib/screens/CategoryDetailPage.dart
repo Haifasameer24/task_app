@@ -221,7 +221,7 @@ class CategoryDetailPage extends StatelessWidget {
           ),
           TextButton(
             onPressed: () {
-            //  categoryController.deleteCategoryAndTasks();
+              categoryController.deleteCategoryAndTasks(Category.);
               Navigator.pop(context);
             },
             child: Text(
