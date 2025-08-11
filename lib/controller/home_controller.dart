@@ -11,6 +11,7 @@ class HomeController extends GetxController{
    final TextEditingController email=TextEditingController();
    final box=GetStorage();
     var userName=''.obs;
+
     @override
     void onInit(){
       super.onInit();

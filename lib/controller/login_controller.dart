@@ -11,11 +11,13 @@ import 'package:google_sign_in/google_sign_in.dart';
 class LoginController extends GetxController {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController email = TextEditingController();
   final box = GetStorage();
   final isLoading = false.obs;
   final isLoadingguest = false.obs;
   final isSignup = false.obs;
-  final isGoogle=false.obs;
+  final isGoogle = false.obs;
+  var userEmail = ''.obs;
 
   // لإنشاء كائن GoogleSignIn مع النطاقات المطلوبة
   final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email']);
@@ -25,9 +27,11 @@ class LoginController extends GetxController {
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password);
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: email, password: password);
       await _setUserLoggedIn();
       Get.put(TaskController());
+      userEmail.value = FirebaseAuth.instance.currentUser?.email ?? "";
       Get.offAll(HomeScreen());
     } catch (e) {
       Get.snackbar("Error", "Because ${e.toString()}");
@@ -69,7 +73,10 @@ class LoginController extends GetxController {
   }
 
   String generateGuestName() {
-    final randomNumber = DateTime.now().millisecondsSinceEpoch.remainder(10000);
+    final randomNumber = DateTime
+        .now()
+        .millisecondsSinceEpoch
+        .remainder(10000);
     return "Guest_$randomNumber";
   }
 
@@ -115,7 +122,7 @@ class LoginController extends GetxController {
   }
 
   Future<void> signInWithGoogle() async {
-   isGoogle.value = true;
+    isGoogle.value = true;
     print("Starting Google sign-in...");
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
@@ -126,7 +133,8 @@ class LoginController extends GetxController {
         return; // المستخدم ألغى تسجيل الدخول
       }
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth = await googleUser
+          .authentication;
       print("Google authentication tokens received.");
 
       final credential = GoogleAuthProvider.credential(
@@ -135,14 +143,16 @@ class LoginController extends GetxController {
       );
       print("Credential created.");
 
-      final UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      final UserCredential userCredential = await FirebaseAuth.instance
+          .signInWithCredential(credential);
       print("Firebase sign-in successful.");
 
       final user = userCredential.user;
       print("Signed in user: $user");
 
       if (user != null) {
-        final userRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+        final userRef = FirebaseFirestore.instance.collection('users').doc(
+            user.uid);
         final doc = await userRef.get();
         print("Checking if user document exists in Firestore.");
 
@@ -192,5 +202,45 @@ class LoginController extends GetxController {
       print("Google sign-in process ended. isLoading set to false.");
     }
   }
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  // دالة لإعادة المصادقة (Re-authenticate) - ضرورية قبل تغيير الايميل أو الباسورد
+  Future<UserCredential> _reauthenticate(String currentEmail, String currentPassword) async {
+    final credential = EmailAuthProvider.credential(email: currentEmail, password: currentPassword);
+    return await _auth.currentUser!.reauthenticateWithCredential(credential);
+  }
+
+  // دالة تغيير الايميل والباسورد (الباسورد اختياري)
+  Future<String> updateEmailAndPassword({
+    required String currentEmail,
+    required String currentPassword,
+    required String newEmail,
+    String? newPassword,
+  }) async {
+    try {
+      // أولاً إعادة المصادقة
+      await _reauthenticate(currentEmail, currentPassword);
+
+      // تغيير الايميل
+      await _auth.currentUser!.updateEmail(newEmail);
+
+      // لو تم تمرير باسورد جديد، نغيره
+      if (newPassword != null && newPassword.isNotEmpty) {
+        await _auth.currentUser!.updatePassword(newPassword);
+      }
+
+      // إعادة تسجيل الدخول بالإيميل الجديد (مهم جداً حتى يبقى المستخدم مسجل دخول)
+      await _auth.signInWithEmailAndPassword(email: newEmail, password: newPassword ?? currentPassword);
+
+      return "Email and password updated successfully.";
+    } on FirebaseAuthException catch (e) {
+      return e.message ?? "Failed to update email or password.";
+    } catch (e) {
+      return "An error occurred: $e";
+    }
+  }
+
 
 }
+
+

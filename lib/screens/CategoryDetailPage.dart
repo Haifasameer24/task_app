@@ -9,12 +9,12 @@ import '../controller/addCatgory_controller.dart';
 import '../controller/task_controller.dart';
 import '../models/Category.dart';
 import '../models/tsks_model.dart';
+import '../wedgit/edit_form.dart';
 class CategoryDetailPage extends StatelessWidget {
   final String catName;
-  final String catId;
-   CategoryDetailPage({required this.catName, required this.catId});
+   CategoryDetailPage({required this.catName});
   final categoryController = Get.put(CategoryController());
-
+//////////////
   void _showEditTaskDialog(BuildContext context, TaskModel task) {
     final taskController = Get.find<TaskController>();
     final categoryController = Get.find<CategoryController>();
@@ -184,7 +184,7 @@ class CategoryDetailPage extends StatelessWidget {
       },
     );
   }
-
+////////////////////////////////
   Future<DateTime?> pickDateTime(BuildContext context, {DateTime? initialDate}) async {
     final DateTime? date = await showDatePicker(
       context: context,
@@ -206,26 +206,27 @@ class CategoryDetailPage extends StatelessWidget {
   }
   void _confirmDeleteCategoryTasks(
       BuildContext context,
-      String categoryName,
-      TaskController taskController,
+      Category category,
+      CategoryController categoryController,
       ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text("تأكيد الحذف"),
-        content: Text("هل أنت متأكد من حذف جميع المهام في هذه الفئة؟"),
+        title: Text("Delete"),
+        content: Text("Are You sure you want to delete category and task؟"),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context), // إلغاء
-            child: Text("إلغاء"),
+            child: Text("Cancel"),
           ),
           TextButton(
             onPressed: () {
-              categoryController.deleteCategoryAndTasks(Category.);
-              Navigator.pop(context);
+              categoryController.deleteCategoryAndTasks(category); // نمرر الكائن مباشرة
+              Get.back();
+              Get.back();
             },
             child: Text(
-              "حذف",
+              "Delete Category",
               style: TextStyle(color: Colors.red),
             ),
           ),
@@ -233,7 +234,6 @@ class CategoryDetailPage extends StatelessWidget {
       ),
     );
   }
-
   @override
   Widget build(BuildContext context) {
     final TaskController taskController = Get.find<TaskController>();
@@ -242,22 +242,48 @@ class CategoryDetailPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('$catName'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.edit),
-            onPressed: () {
-              // هنا ممكن تستدعي شاشة تعديل الكاتيجوري
-              // أو أي نافذة تعديل
-              // _showEditCategoryDialog(context, catName);
+          actions: [  PopupMenuButton<String>(
+            onSelected: (value) {
+              final categoryController = Get.find<CategoryController>();
+              final category = categoryController.categories.firstWhere((c) => c.name == catName);
+
+              if (value == 'edit') {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+                  builder: (context) => CategoryForm(category: category),
+                );
+              } else if (value == 'delete') {
+                _confirmDeleteCategoryTasks(context, category, categoryController);
+              }
             },
-          ),
-          IconButton(
-            icon: Icon(Icons.delete),
-            onPressed: () {
-              _confirmDeleteCategoryTasks(context, catName,taskController );
-            },
-          ),
-        ],
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'edit',
+                child: Row(
+                  children: [
+                    HeroIcon(HeroIcons.pencilSquare, color: Colors.grey, size: 24),
+                    Text('Edite Category'),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    HeroIcon(HeroIcons.trash, color: Colors.red, size: 24),
+                    SizedBox(width: 8),
+                    Text('Delete Category', style: TextStyle(color: Colors.red)),
+                  ],
+                ),
+              ),
+            ],
+          )]
+
+
+
       ),
 
       body: Center(
@@ -337,7 +363,7 @@ class CategoryDetailPage extends StatelessWidget {
                                   Navigator.pop(context);
                                   _showEditTaskDialog(context, task);
                                 },
-                                child: const Text("Edit", style: TextStyle(color: Colors.white)),
+                                child: const Text("Edit Task", style: TextStyle(color: Colors.white)),
                               ),
                             ],
 
@@ -475,6 +501,7 @@ class CategoryDetailPage extends StatelessWidget {
     );
   }
 
+
   Widget _buildTaskCard(TaskModel task, BuildContext context) {
     final TaskController taskController = Get.find<TaskController>();
     final theme = Theme.of(context);
@@ -503,7 +530,7 @@ class CategoryDetailPage extends StatelessWidget {
 
             taskController.tasks.remove(task);
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("تم حذف المهمة '${task.name}'")),
+              SnackBar(content: Text("Deleted task '${task.name}'")),
             );
           },
         ),
@@ -513,7 +540,7 @@ class CategoryDetailPage extends StatelessWidget {
             backgroundColor: Colors.red,
             foregroundColor: Colors.white,
             icon: Icons.delete_outline,
-            label: "حذف",
+            label: "Delete",
           ),
         ],
       ),

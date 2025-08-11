@@ -242,7 +242,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 setState(() {
                   filterMode = "Tasks";
                 });
-                Get.back();
+                if (Get.isSnackbarOpen) {
+                  Get.closeCurrentSnackbar();
+                } else if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                }
               },
             ),
             ListTile(
@@ -251,7 +255,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 setState(() {
                   filterMode = "Categories";
                 });
-                Get.back();
+                if (Get.isSnackbarOpen) {
+                  Get.closeCurrentSnackbar();
+                } else if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                }
               },
             ),
           ],

@@ -293,7 +293,7 @@ class NotificationPage extends StatelessWidget{
                                 Navigator.pop(context);
                                 _showEditTaskDialog(context, task);
                               },
-                              child: const Text("Edit", style: TextStyle(color: Colors.white)),
+                              child: const Text("Edit Task", style: TextStyle(color: Colors.white)),
                             ),
                           ],
 

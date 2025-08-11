@@ -224,7 +224,7 @@ class ListCatigroies extends StatelessWidget {
             HeroIcon(HeroIcons.plus, color: Theme.of(context).iconTheme.color, size: 18),
             SizedBox(width: 6),
             Text(
-              'ADD',
+              'ADD Category',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],

@@ -5,12 +5,15 @@ import 'package:get_storage/get_storage.dart';
 import 'package:getx_course/screens/signup_screen.dart';
 import 'package:getx_course/screens/splash_screen.dart';
 import 'package:heroicons/heroicons.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../controller/home_controller.dart';
 import '../controller/login_controller.dart';
 import '../controller/profile_image_controller.dart';
 import '../controller/task_controller.dart';
 import '../controller/them_controller.dart';
 import '../models/user_model.dart';
+import 'create_password.dart';
+import 'edit_account_screen.dart';
 
 class SettingsPage extends StatelessWidget {
   final HomeController homeController = Get.put(HomeController());
@@ -19,6 +22,16 @@ class SettingsPage extends StatelessWidget {
   final ThemeController themeController = Get.find<ThemeController>();
 
   SettingsPage({Key? key}) : super(key: key);
+  Future<void> _callPhoneNumber(String phoneNumber) async {
+    final Uri telUri = Uri(scheme: 'tel', path: phoneNumber);
+    if (await canLaunchUrl(telUri)) {
+      await launchUrl(telUri);
+    } else {
+      Get.snackbar('Error', 'Cannot open phone dialer');
+    }
+  }
+
+
 
   void _showEditDialog(BuildContext context) {
     homeController.nameController.text = homeController.userName.value;
@@ -105,6 +118,8 @@ class SettingsPage extends StatelessWidget {
       ),
     );
   }
+
+
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -237,14 +252,13 @@ class SettingsPage extends StatelessWidget {
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black87),
                   )),
                   Text(
-                    FirebaseAuth.instance.currentUser?.email ?? "",
+                    FirebaseAuth.instance.currentUser?.email ?? 'No Email',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w400,
                       color: isDark ? Colors.white : Colors.black,
                     ),
                   )
-
 
                 ],
               ),
@@ -274,9 +288,178 @@ class SettingsPage extends StatelessWidget {
 
           // Info Section
           _buildSettingCard(context, [
-            _buildTile(context, HeroIcons.lockClosed, 'Privacy', () {}, isDark),
-            _buildTile(context, HeroIcons.questionMarkCircle, 'Help & Support', () {}, isDark),
-            _buildTile(context, HeroIcons.phone, 'Contact us', () {}, isDark),
+    _buildTile(context, HeroIcons.user, 'Account', () async {
+    final box = GetStorage();
+    final isGuest = box.read("is_guest") ?? false;
+
+    if (isGuest) {
+    showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+    content: const Text("Signup to edit your profile"),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    actionsAlignment: MainAxisAlignment.spaceEvenly,
+    actions: [
+    ElevatedButton(
+    style: ElevatedButton.styleFrom(
+    backgroundColor: Colors.deepPurple,
+    foregroundColor: Colors.white,
+    ),
+    onPressed: () {
+    Navigator.of(context).pop();
+    Get.to(() => SignupScreen());
+    },
+    child: const Text("Sign up"),
+    ),
+    TextButton(
+    onPressed: () => Navigator.of(context).pop(),
+    child: const Text("Cancel"),
+    ),
+    ],
+    ),
+    );
+    return;
+    }
+
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null || user.email == null) {
+    Get.snackbar("خطأ", "لم يتم تسجيل الدخول بشكل صحيح");
+    return;
+    }
+
+    await user.reload();
+
+    // جلب مزودي الدخول للحساب
+    final providerIds = user.providerData.map((p) => p.providerId).toList();
+
+    print("User providers: $providerIds"); // طباعة للتأكد أثناء التطوير
+
+    final hasGoogle = providerIds.contains('google.com');
+    final hasPassword = providerIds.contains('password');
+
+    if (hasGoogle && !hasPassword) {
+    // عنده Google بس بدون كلمة مرور
+    Get.to(() => CreatePasswordScreen(email: user.email!));
+    } else {
+    // عنده باسورد (سواء كان جوجل أو غيره)
+    Get.to(() => const PasswordScreen());
+    }
+    }, isDark),
+
+            _buildTile(context, HeroIcons.questionMarkCircle, 'Help & Support', () {
+              showModalBottomSheet(
+                context: context,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                builder: (context) {
+                  return Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: SizedBox(
+                      height: 150,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Help & Support',
+                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 20),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                'Contact us at: ',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                              InkWell(
+                                onTap: () => _callPhoneNumber('+9720598882344'),
+                                child: const Text(
+                                  '+9720598882344',
+                                  style: TextStyle(
+                                    color: Colors.blue,
+                                    decoration: TextDecoration.underline,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Spacer(),
+                          Align(
+                            alignment: Alignment.bottomRight,
+                            child: TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Text('Close'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            }, isDark),
+
+
+
+
+            _buildTile(context, HeroIcons.phone, 'Contact us', () {
+              showModalBottomSheet(
+                context: context,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                builder: (context) {
+                  return Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: SizedBox(
+                      height: 150,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Contact us',
+                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 20),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                'Contact us at: ',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                              InkWell(
+                                onTap: () => _callPhoneNumber('+9720598882344'),
+                                child: const Text(
+                                  '+9720598882344',
+                                  style: TextStyle(
+                                    color: Colors.blue,
+                                    decoration: TextDecoration.underline,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Spacer(),
+                          Align(
+                            alignment: Alignment.bottomRight,
+                            child: TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Text('Close'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            }, isDark),
+
             _buildTile(context, HeroIcons.informationCircle, 'About App', () {}, isDark),
             _buildTile(context, HeroIcons.arrowLeftStartOnRectangle, 'Log out', () {
               final isGuest = GetStorage().read("is_guest") ?? false;

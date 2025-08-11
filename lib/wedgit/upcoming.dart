@@ -159,7 +159,6 @@ class UpComingTasks extends StatelessWidget {
                       onPressed: () => Navigator.pop(context),
                     ),
                     ElevatedButton(
-                      child: Text("Save"),
                       onPressed: () async {
                         final updated = TaskModel(
                           id: task.id,
@@ -173,12 +172,24 @@ class UpComingTasks extends StatelessWidget {
                           createdAt: task.createdAt,
                         );
 
-
                         await taskController.updateTask(updated);
                         taskController.haveNotify.value = haveNotify.value;
                         Navigator.pop(context);
                       },
-                    ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF4B3FAF),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        foregroundColor: Colors.white,
+                        textStyle: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        elevation: 4,
+                      ),
+                      child: const Text("Save"),
+                    )
+
                   ],
                 ),
               ],
@@ -298,7 +309,7 @@ class UpComingTasks extends StatelessWidget {
                 Navigator.pop(context);
                 _showEditTaskDialog(context, task);
               },
-              child: const Text("Edit", style: TextStyle(color: Colors.white)),
+              child: const Text("Edit Task", style: TextStyle(color: Colors.white)),
             ),
           ],
           content: Column(
@@ -662,7 +673,7 @@ class UpComingTasks extends StatelessWidget {
                     icon: Icon(Icons.more_vert, color: subtitleColor),
                     onSelected: (String selected) async {
                       if (selected == "Change Status") {
-                        bool changed = await taskController.changeTaskStatus(task, TaskStatus.done);
+                        bool changed = await taskController.changeTaskStatus(task, TaskStatus.inProgress);
                         if (!changed) {
                           Get.snackbar(
                             "Access Denied",

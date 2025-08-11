@@ -66,7 +66,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
               _buildTextField(
                 controller: controller.passwordController,
-                icon: _obsecurePassword ? HeroIcons.eye : HeroIcons.eyeSlash,
+                icon: _obsecurePassword ? HeroIcons.eyeSlash : HeroIcons.eye,
                 hint: "Enter your password",
                 obscure: _obsecurePassword,
                 toggleObscure: () {

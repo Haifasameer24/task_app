@@ -101,29 +101,6 @@ class SignUpController extends GetxController {
               .doc(doc.id)
               .delete();
         }
-
-      } else {
-        // ⚙️ إنشاء تصنيفات افتراضية للمستخدم الجديد (إذا لم يكن ضيف)
-        final defaultCategories = [
-          {
-            'name': 'Work',
-            'description': 'Work-related tasks',
-            'color': Colors.blue.value,
-          },
-          {
-            'name': 'Personal',
-            'description': 'Personal tasks',
-            'color': Colors.green.value,
-          },
-        ];
-
-        for (var cat in defaultCategories) {
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(user.uid)
-              .collection('categories')
-              .add(cat);
-        }
       }
 
       //  تحديث التخزين المحلي

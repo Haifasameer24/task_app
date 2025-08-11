@@ -8,11 +8,16 @@ import '../models/tsks_model.dart';
 import '../services/notification_services.dart';
 import 'package:timezone/timezone.dart' as tz;
 
+import 'addCatgory_controller.dart';
+
 class TaskController extends GetxController {
   final taskNameController = TextEditingController();
   final taskTimeController = TextEditingController();
   final taskDescriptionController = TextEditingController();
   final taskCatController = TextEditingController();
+  String? selectedCategory;
+
+  final existingCategories = Get.find<CategoryController>().categories;
 
   final box = GetStorage();
   DateTime? realDueDate;
@@ -108,12 +113,24 @@ class TaskController extends GetxController {
   }
 
   Future<void> addTaskWithNotification() async {
+    final selectedCat = taskCatController.text.trim();
+
+    // 🔹 تحقق أولاً من الفئة
+    if (selectedCat.isEmpty) {
+      Get.snackbar("Error", "you should select catogroy");
+      return;
+    }
+
+    if (!existingCategories.any((cat) => cat.name == selectedCat)) {
+      Get.snackbar("Error", "you should select catogroy");
+      return;
+    }
+
     if (taskTitle == null || taskTitle!.isEmpty ||
         taskDesc == null || taskDesc!.isEmpty ||
         taskDate == null ||
-        taskDate == null ||
         year == null || month == null || day == null || hour == null || minute == null) {
-      Get.snackbar("خطأ", "يرجى تعبئة كل الحقول وتحديد التاريخ والوقت");
+      Get.snackbar("Error", "you should enter task name description");
       return;
     }
 
@@ -134,7 +151,8 @@ class TaskController extends GetxController {
     final newTaskId = await addTask(dueDate: taskDate!);
     if (newTaskId == null) return;
 
-    if (haveNotify.value == true) {
+    // 🔹 جدولة الإشعار إذا مفعّل
+    if (haveNotify.value) {
       await NotificationService.scheduleNotification(
         id: newTaskId.hashCode,
         title: "$taskTitle",
@@ -148,6 +166,9 @@ class TaskController extends GetxController {
       box.write("notified_$newTaskId", true);
     }
   }
+
+
+
 
   Future<String?> addTask({required DateTime dueDate}) async {
     final user = box.read("id");
@@ -261,6 +282,7 @@ class TaskController extends GetxController {
 
     taskTitle = taskNameController.text.trim();
     taskDesc = taskDescriptionController.text.trim();
+
 
     await addTaskWithNotification();
   }
