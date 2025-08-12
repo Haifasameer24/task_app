@@ -57,7 +57,9 @@ dependencies:
   heroicons: ^0.11.0
   google_fonts: ^6.2.1
   google_sign_in: ^6.3.0
-  url_launcher: ^6.3.2
+  url_launcher: ^6.1.7
+  device_info_plus: ^10.0.0
+
 
 
 dev_dependencies:

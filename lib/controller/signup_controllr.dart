@@ -19,14 +19,64 @@ class SignUpController extends GetxController {
   final box = GetStorage();
   final isSignup=false.obs;
   Future<void> register() async {
-    isSignup.value=true;
+    isSignup.value = true;
+
     final name = nameController.text.trim();
     final email = emailController.text.trim();
     final password = passwordController.text.trim();
     final confirmPassword = passwordConfirmController.text.trim();
 
+    // التحقق من الاسم
+    if (name.isEmpty) {
+      Get.snackbar("Error", "Please enter your name");
+      isSignup.value = false;
+      return;
+    }
+
+    // التحقق من الإيميل
+    if (email.isEmpty) {
+      Get.snackbar("Error", "Please enter your email");
+      isSignup.value = false;
+      return;
+    }
+
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(email)) {
+      Get.snackbar("Error", "Please enter a valid email address");
+      isSignup.value = false;
+      return;
+    }
+
+    // التحقق من كلمة السر
+    if (password.isEmpty) {
+      Get.snackbar("Error", "Please enter your password");
+      isSignup.value = false;
+      return;
+    }
+
+    if (password.length < 6) {
+      Get.snackbar("Error", "Password must be at least 6 characters");
+      isSignup.value = false;
+      return;
+    }
+
+    final hasLetter = RegExp(r'[A-Za-z]').hasMatch(password);
+    final hasNumber = RegExp(r'\d').hasMatch(password);
+    final hasSpecialChar = RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(password);
+
+    if (!hasLetter || !hasNumber || !hasSpecialChar) {
+      Get.snackbar(
+        "Error",
+        "Password must contain at least one letter, one number, and one special character",
+      );
+      isSignup.value = false;
+      return;
+    }
+
+    // التحقق من تطابق كلمة السر
     if (password != confirmPassword) {
-      Get.snackbar("Error", "Password Not Match");
+      Get.snackbar("Error", "Passwords do not match");
+      isSignup.value = false;
       return;
     }
 
@@ -76,7 +126,7 @@ class SignUpController extends GetxController {
               .delete();
         }
 
-        // 🔁 نسخ التصنيفات من الضيف
+        // نسخ التصنيفات من الضيف
         final guestCategoriesSnapshot = await FirebaseFirestore.instance
             .collection('users')
             .doc(oldGuestId)
@@ -103,7 +153,7 @@ class SignUpController extends GetxController {
         }
       }
 
-      //  تحديث التخزين المحلي
+      // تحديث التخزين المحلي
       await box.write("id", user.uid);
       await box.write("name", user.name);
       await box.write("email", user.email);
@@ -111,20 +161,22 @@ class SignUpController extends GetxController {
       await box.write("is_logged_in", true);
       await box.write("is_guest", false);
 
-      //  تحميل البيانات بعد التسجي
+      // تحميل البيانات بعد التسجيل
       final taskController = Get.put(TaskController());
       final cat = Get.put(CategoryController());
       await taskController.loadTasksForUser(user.uid);
       await cat.loadCatForUser(user.uid);
-      isSignup.value=false;
+
+      isSignup.value = false;
 
       Get.offAll(HomeScreen());
-
     } catch (e) {
       Get.snackbar("Error", e.toString());
       print(e);
+      isSignup.value = false;
     }
   }
+
 
 
 }

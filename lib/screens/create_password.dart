@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:heroicons/heroicons.dart';
 import 'home_screen.dart';
 import '../controller/task_controller.dart';
 
@@ -19,26 +20,48 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
   final isLoading = false.obs;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final box = GetStorage();
+  bool _newPassword=true;
+  bool _confirmPassword=true;
 
   Future<void> _setPassword() async {
     final password = passwordController.text.trim();
     final confirm = confirmController.text.trim();
 
     if (password.isEmpty || confirm.isEmpty) {
-      Get.snackbar("خطأ", "جميع الحقول مطلوبة");
+      Get.snackbar("Error", "All fields are required");
       return;
     }
     if (password != confirm) {
-      Get.snackbar("خطأ", "كلمة المرور غير متطابقة");
+      Get.snackbar("Error", "New passwords do not match");
       return;
     }
+
+    // عرض Dialog تأكيد
+    final confirmSet = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Sure"),
+        content: const Text("Are you sure to add new password?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text("No"),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text("Yes"),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmSet != true) return;
 
     try {
       isLoading.value = true;
       final user = _auth.currentUser;
 
       if (user != null) {
-        // ربط الباسورد بالحساب
         final cred = EmailAuthProvider.credential(
           email: widget.email,
           password: password,
@@ -53,23 +76,26 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
         await box.write("create_date", DateTime.now().toIso8601String());
         await box.write("is_logged_in", true);
         await box.write("is_guest", false);
-        box.write("seen_onboarding", true);
+        await box.write("seen_onboarding", true);
 
         // تحميل المهام وفتح الصفحة الرئيسية
         Get.put(TaskController());
         Get.offAll(() => HomeScreen());
 
-        Get.snackbar("تم", "تم تعيين كلمة المرور بنجاح");
+        Get.snackbar("Done", "Done added new password");
       }
     } on FirebaseAuthException catch (e) {
-      Get.snackbar("خطأ", e.message ?? "حدث خطأ أثناء إنشاء كلمة المرور");
+      Get.snackbar("Error", e.message ?? "حدث خطأ أثناء إنشاء كلمة المرور");
     } finally {
       isLoading.value = false;
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
         title: const Text("Create Account"),
@@ -86,29 +112,59 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
             const SizedBox(height: 20),
             TextField(
               controller: passwordController,
+              obscureText: _newPassword,
+              style: TextStyle(color: theme.textTheme.bodyLarge?.color ?? Colors.black),
               decoration: InputDecoration(
-                hintText: 'password',
-                contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 16),
-                filled: true,
-                fillColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
+                prefixIcon: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _newPassword = !_newPassword;
+                    });
+                  },
+                  child: HeroIcon(
+                    _newPassword ? HeroIcons.eyeSlash : HeroIcons.eye,
+                    style: HeroIconStyle.outline,
+                    color: theme.iconTheme.color,
+                    size: 24,
+                  ),
+                ),
+                hintText: "New password",
+                hintStyle: TextStyle(color: theme.hintColor),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
                 ),
+                filled: true,
+                fillColor: isDark ? Colors.grey[800] : Colors.grey.shade100,
               ),),
             const SizedBox(height: 16),
             TextField(
               controller: confirmController,
+              obscureText: _confirmPassword,
+              style: TextStyle(color: theme.textTheme.bodyLarge?.color ?? Colors.black),
               decoration: InputDecoration(
-                hintText: 'Confirm Password',
-                contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 16),
-                filled: true,
-                fillColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
+                prefixIcon: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _confirmPassword = !_confirmPassword;
+                    });
+                  },
+                  child: HeroIcon(
+                    _confirmPassword ? HeroIcons.eyeSlash : HeroIcons.eye,
+                    style: HeroIconStyle.outline,
+                    color: theme.iconTheme.color,
+                    size: 24,
+                  ),
+                ),
+                hintText: "Confirm password",
+                hintStyle: TextStyle(color: theme.hintColor),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
                 ),
-              )),
+                filled: true,
+                fillColor: isDark ? Colors.grey[800] : Colors.grey.shade100,
+              ),),
             const SizedBox(height: 20),
             Obx(() => ElevatedButton(
               onPressed: isLoading.value ? null : _setPassword,

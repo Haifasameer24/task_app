@@ -41,7 +41,6 @@ class TaskController extends GetxController {
     super.onInit();
     streamTasks();
   }
-
   void streamTasks() {
     print("📡 streamTasks() بدأ تنفيذها");
 
@@ -102,8 +101,14 @@ class TaskController extends GetxController {
         }
       }
     });
+
+  }
+  void removeTaskFromUI(TaskModel task) {
+    notifications.remove(task);
+    notifications.refresh();
   }
 
+  var notifications = <TaskModel>[].obs;
   List<TaskModel> get filteredTasks {
     if (searchText.value.trim().isEmpty) return tasks;
     final query = searchText.value.toLowerCase();
@@ -111,6 +116,8 @@ class TaskController extends GetxController {
       return task.name.toLowerCase().startsWith(query);
     }).toList();
   }
+
+
 
   Future<void> addTaskWithNotification() async {
     final selectedCat = taskCatController.text.trim();
@@ -337,6 +344,7 @@ class TaskController extends GetxController {
       Get.snackbar("Error", "Failed to update task: $e");
     }
   }
+
 
 
   @override

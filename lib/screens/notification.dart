@@ -449,31 +449,20 @@ class NotificationPage extends StatelessWidget{
                 .collection('tasks')
                 .doc(task.id)
                 .delete();
-            taskController.tasks.remove(task);
+            taskController.removeTaskFromUI(task);
           },
         ),
         children: [
           SlidableAction(
-            onPressed: (_) async {
-              final userId = FirebaseAuth.instance.currentUser?.uid;
-              if (userId == null) return;
-
-              await FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(userId)
-                  .collection('tasks')
-                  .doc(task.id)
-                  .delete();
-              taskController.tasks.remove(task);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("'Notification Deleted'${task.name}'")),
-              );
+            onPressed: (_) {
+              taskController.removeTaskFromUI(task);
             },
             backgroundColor: Colors.red,
             foregroundColor: Colors.white,
             icon: Icons.delete_outline,
             label: "Delete",
           ),
+
         ],
       ),
       child: Container(

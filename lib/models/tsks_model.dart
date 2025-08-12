@@ -4,7 +4,7 @@ enum TaskStatus {
   done,
 }
 
-class TaskModel {
+class TaskModel  {
   String id;
   String name;
   String description;

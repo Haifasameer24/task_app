@@ -14,18 +14,23 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await GetStorage.init();
-  await NotificationService.init();
   Get.put(ThemeController());
   Get.put(CategoryController());
 
   runApp(const MyApp());
+
+  // 🕒 بعد ما يشتغل التطبيق وواجهة الـ UI تظهر، شغّل الإشعارات
+  Future.delayed(const Duration(seconds: 2), () async {
+    await NotificationService.init();
+  });
 }
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     final ThemeController themeController = Get.find();
-
 
     return Obx(() {
       return GetMaterialApp(
@@ -33,8 +38,9 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: ThemeData.light(useMaterial3: true),
         darkTheme: ThemeData.dark(useMaterial3: true),
-        themeMode:
-        themeController.isDarkMode.value ? ThemeMode.dark : ThemeMode.light,
+        themeMode: themeController.isDarkMode.value
+            ? ThemeMode.dark
+            : ThemeMode.light,
         home: const SplashScreen(),
       );
     });

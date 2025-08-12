@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -11,7 +14,6 @@ import '../controller/login_controller.dart';
 import '../controller/profile_image_controller.dart';
 import '../controller/task_controller.dart';
 import '../controller/them_controller.dart';
-import '../models/user_model.dart';
 import 'create_password.dart';
 import 'edit_account_screen.dart';
 
@@ -22,12 +24,26 @@ class SettingsPage extends StatelessWidget {
   final ThemeController themeController = Get.find<ThemeController>();
 
   SettingsPage({Key? key}) : super(key: key);
-  Future<void> _callPhoneNumber(String phoneNumber) async {
+  Future<bool> isEmulator() async {
+    final deviceInfoPlugin = DeviceInfoPlugin();
+
+    if (Platform.isAndroid) {
+      final androidInfo = await deviceInfoPlugin.androidInfo;
+      return !androidInfo.isPhysicalDevice;
+    } else if (Platform.isIOS) {
+      final iosInfo = await deviceInfoPlugin.iosInfo;
+      return !iosInfo.isPhysicalDevice;
+    } else {
+      return false;
+    }
+  }
+
+  void _callPhoneNumber(String phoneNumber) async {
     final Uri telUri = Uri(scheme: 'tel', path: phoneNumber);
     if (await canLaunchUrl(telUri)) {
       await launchUrl(telUri);
     } else {
-      Get.snackbar('Error', 'Cannot open phone dialer');
+      Get.snackbar("خطأ", "تعذر فتح تطبيق الاتصال");
     }
   }
 
@@ -249,16 +265,21 @@ class SettingsPage extends StatelessWidget {
                   const SizedBox(height: 10),
                   Obx(() => Text(
                     homeController.userName.value,
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black87),
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
                   )),
+                  const SizedBox(height: 6),
                   Text(
                     FirebaseAuth.instance.currentUser?.email ?? 'No Email',
                     style: TextStyle(
-                      fontSize: 20,
+                      fontSize: 16,
                       fontWeight: FontWeight.w400,
-                      color: isDark ? Colors.white : Colors.black,
+                      color: isDark ? Colors.white70 : Colors.black54,
                     ),
-                  )
+                  ),
 
                 ],
               ),
@@ -347,65 +368,86 @@ class SettingsPage extends StatelessWidget {
     }
     }, isDark),
 
-            _buildTile(context, HeroIcons.questionMarkCircle, 'Help & Support', () {
-              showModalBottomSheet(
-                context: context,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                ),
-                builder: (context) {
-                  return Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: SizedBox(
-                      height: 150,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Help & Support',
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 20),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Text(
-                                'Contact us at: ',
-                                style: TextStyle(fontSize: 16),
-                              ),
-                              InkWell(
-                                onTap: () => _callPhoneNumber('+9720598882344'),
-                                child: const Text(
-                                  '+9720598882344',
-                                  style: TextStyle(
-                                    color: Colors.blue,
-                                    decoration: TextDecoration.underline,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const Spacer(),
-                          Align(
-                            alignment: Alignment.bottomRight,
-                            child: TextButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              child: const Text('Close'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              );
-            }, isDark),
+    _buildTile(context, HeroIcons.questionMarkCircle, 'Help & Support', () {
+    showModalBottomSheet(
+    context: context,
+    shape: const RoundedRectangleBorder(
+    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (context) {
+    return Padding(
+    padding: const EdgeInsets.all(16),
+    child: SizedBox(
+    height: 150,
+    child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+    const Text(
+    'Help & Support',
+    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+    ),
+    const SizedBox(height: 20),
+    Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+    const Text(
+    'Contact us at: ',
+    style: TextStyle(fontSize: 16),
+    ),
+    InkWell(
+      onTap: () async {
+        bool emulator = await isEmulator();
+        print("Is emulator? $emulator");
+
+        if (emulator) {
+          Navigator.of(context).pop(); // إغلاق الـ BottomSheet
+          await Future.delayed(const Duration(milliseconds: 300));
+          Get.snackbar(
+            "تنبيه",
+            "لا يمكن فتح الاتصال على المحاكي، الرجاء نسخ الرقم والاتصال من هاتف حقيقي",
+            snackPosition: SnackPosition.BOTTOM,
+            backgroundColor: Colors.redAccent,
+            colorText: Colors.white,
+            margin: const EdgeInsets.all(16),
+            borderRadius: 8,
+          );
+        } else {
+          _callPhoneNumber('+9720598882344');
+        }
+      },
+
+      child: const SelectableText(
+    '+9720598882344',
+    style: TextStyle(
+    color: Colors.blue,
+    decoration: TextDecoration.underline,
+    fontSize: 16,
+    ),
+    ),
+    ),
+    ],
+    ),
+    const Spacer(),
+    Align(
+    alignment: Alignment.bottomRight,
+    child: TextButton(
+    onPressed: () => Navigator.of(context).pop(),
+    child: const Text('Close'),
+    ),
+    ),
+    ],
+    ),
+    ),
+    );
+    },
+    );
+    }, isDark),
 
 
 
 
-            _buildTile(context, HeroIcons.phone, 'Contact us', () {
+
+    _buildTile(context, HeroIcons.phone, 'Contact us', () {
               showModalBottomSheet(
                 context: context,
                 shape: RoundedRectangleBorder(
