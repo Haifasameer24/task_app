@@ -201,7 +201,7 @@ class _SignupScreenState extends State<SignupScreen> {
     required String hint,
     bool obscure = false,
     VoidCallback? toggleObscure,
-    required ThemeData theme,
+    required theme,
     required bool isDark,
   }) {
     return TextField(

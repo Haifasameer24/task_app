@@ -232,10 +232,6 @@ class TaskController extends GetxController {
       print("Error deleting task: $e");
     }
   }
-
-
-
-
   Future<bool> changeTaskStatus(TaskModel task, TaskStatus newStatus) async {
     // ترجع true إذا تم التغيير، false إذا ضيف (ممنوع)
     bool isGuest = box.read("is_guest") ?? false;
