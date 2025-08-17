@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -168,12 +169,27 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
                 fillColor: isDark ? Colors.grey[800] : Colors.grey.shade100,
               ),),
             const SizedBox(height: 20),
-            Obx(() => ElevatedButton(
-              onPressed: isLoading.value ? null : _setPassword,
-              child: isLoading.value
-                  ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text("save"),
-            )),
+            SizedBox(
+              width: double.infinity,
+              child: Obx(() {
+                if (isLoading.value) {
+                  return const Center(child: CupertinoActivityIndicator());
+                }
+                return ElevatedButton(
+                  onPressed: _setPassword,
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 48),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Colors.white,
+                    textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                  child: const Text("Save"),
+                );
+              }),
+            )
           ],
         ),
       ),

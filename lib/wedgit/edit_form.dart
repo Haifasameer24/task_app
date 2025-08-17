@@ -33,19 +33,19 @@ class _CategoryFormState extends State<CategoryForm> {
     final name = nameController.text.trim();
     final desc = descController.text.trim();
     if (name.isEmpty || desc.isEmpty) {
-      Get.snackbar("خطأ", "رجاءً املأ كل الحقول");
+      Get.snackbar("Error", "Please fill in all fields");
       return;
     }
     if (selectedColor == null) {
-      Get.snackbar("خطأ", "اختر لونًا");
+      Get.snackbar("Error", "select color");
       return;
     }
     if (widget.category == null) {
       await categoryController.addCategoryDirect(name, desc, selectedColor!);
-      Get.snackbar("نجاح", "تمت الإضافة");
+      Get.snackbar("scusses", "Added Done");
     } else {
       await categoryController.editCategoryDirect(widget.category!.id, name, desc, selectedColor!);
-      Get.snackbar("نجاح", "Edite Done");
+      Get.snackbar("scusses", "Edite Done");
     }
     Navigator.pop(context);
   }

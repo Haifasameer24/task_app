@@ -7,7 +7,7 @@
 
 
     <application
-        android:label="getx_course"
+        android:label="Task App"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true">
